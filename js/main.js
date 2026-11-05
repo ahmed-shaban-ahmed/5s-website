@@ -4,6 +4,7 @@
   var header = document.querySelector(".site-header");
   var toggle = document.getElementById("menu-toggle");
   var nav = document.getElementById("main-nav");
+  var isHome = document.body.classList.contains("page-home");
 
   function closeMenu() {
     if (!nav || !toggle) return;
@@ -41,17 +42,60 @@
     });
   }
 
-  // Sticky header shadow on scroll
+  // Header scroll state
   if (header) {
     var onScroll = function () {
-      if (window.scrollY > 8) {
-        header.style.boxShadow = "0 8px 24px rgba(17,24,39,0.06)";
+      var scrolled = window.scrollY > 8;
+      if (isHome) {
+        header.classList.toggle("is-scrolled", scrolled);
       } else {
-        header.style.boxShadow = "none";
+        header.style.boxShadow = scrolled
+          ? "0 8px 24px rgba(17,24,39,0.06)"
+          : "none";
       }
     };
     window.addEventListener("scroll", onScroll, { passive: true });
     onScroll();
+  }
+
+  // Hero video crossfade (matches old 5s-tech.org slider)
+  var v1 = document.getElementById("heroVideo1");
+  var v2 = document.getElementById("heroVideo2");
+  var reduceMotion =
+    window.matchMedia &&
+    window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+
+  if (v1 && v2 && !reduceMotion) {
+    var active = 1;
+    var switching = false;
+
+    function playSafe(video) {
+      var p = video.play();
+      if (p && typeof p.catch === "function") p.catch(function () {});
+    }
+
+    function switchVideos() {
+      if (switching) return;
+      switching = true;
+      var show = active === 1 ? v2 : v1;
+      var hide = active === 1 ? v1 : v2;
+      show.currentTime = 0;
+      playSafe(show);
+      show.classList.add("is-active");
+      hide.classList.remove("is-active");
+      active = active === 1 ? 2 : 1;
+      window.setTimeout(function () {
+        hide.pause();
+        switching = false;
+      }, 1200);
+    }
+
+    playSafe(v1);
+    // Crossfade every ~10s (old site style)
+    window.setInterval(switchVideos, 10000);
+  } else if (v1 && !reduceMotion) {
+    var p = v1.play();
+    if (p && typeof p.catch === "function") p.catch(function () {});
   }
 
   // Reveal on scroll
@@ -77,7 +121,7 @@
     });
   }
 
-  // Smooth scroll polyfill for same-page anchors with sticky header offset
+  // Smooth scroll for same-page anchors with sticky header offset
   document.querySelectorAll('a[href^="#"]').forEach(function (anchor) {
     anchor.addEventListener("click", function (e) {
       var id = anchor.getAttribute("href");
