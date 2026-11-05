@@ -1,19 +1,9 @@
-# فايف إس — Homepage
+# فايف إس — الصفحة الرئيسية
 
-Static Arabic RTL homepage for 5S (Sand & Soil Stabilization Smart Solutions).
+موقع ثابت (HTML / CSS / JS) للصفحة الأولى لـ **فايف إس** — حلول تثبيت الرمال والتربة بتقنية عالمية وإنتاج سعودي.
 
-## Preview locally
+## 🔗 معاينة مباشرة
 
-Open `index.html` in a browser, or:
+**[https://ahmed-shaban-ahmed.github.io/5s-website/](https://ahmed-shaban-ahmed.github.io/5s-website/)**
 
-```bash
-python3 -m http.server 8080
-```
-
-Then visit http://localhost:8080
-
-## Stack
-
-- HTML / CSS / vanilla JS
-- Cairo (Google Fonts)
-- GitHub Pages (main branch, root)
+واجهة عربية (RTL) بخط Cairo، متجاوبة للجوال، مع قائمة محمولة، تمرير سلس، رسوم ظهور خفيفة، زر واتساب عائم، وفيديو يوتيوب في قسم «كيف تعمل».
