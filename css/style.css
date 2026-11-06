@@ -173,15 +173,6 @@ a {
   background: #b8890f;
 }
 
-.btn-green {
-  background: var(--green);
-  color: #fff;
-}
-
-.btn-green:hover {
-  background: var(--green-dark);
-}
-
 .btn-outline {
   background: rgba(255, 255, 255, 0.08);
   border: 1.5px solid rgba(255, 255, 255, 0.7);
@@ -197,10 +188,6 @@ a {
   display: flex;
   gap: 12px;
   flex-wrap: wrap;
-}
-
-.cta-row.center {
-  justify-content: center;
 }
 
 /* Home: fixed translucent header over full-bleed hero (no green gap) */
@@ -613,22 +600,7 @@ h2 {
 .ctafoot {
   background: #0b1220;
   color: #fff;
-  padding: 72px 0 36px;
-}
-
-.cta-band {
-  text-align: center;
-  margin-bottom: 64px;
-}
-
-.cta-band h2 {
-  font-size: clamp(24px, 3.5vw, 32px);
-  margin-bottom: 12px;
-}
-
-.cta-band p {
-  color: rgba(255, 255, 255, 0.7);
-  margin-bottom: 24px;
+  padding: 52px 0 36px;
 }
 
 .site-footer {
@@ -1251,11 +1223,7 @@ a.card {
   }
 }
 
-/* Homepage pre-footer: cream split CTA */
-.page-home .ctafoot {
-  padding-top: 52px;
-}
-
+/* Pre-footer cream split CTA, shared by every page */
 .cta-split {
   --cta-cream: #f3eee3;
   --cta-ink: #171717;
