@@ -849,7 +849,7 @@ a.card {
   color: #fff;
   background:
     linear-gradient(rgba(8, 14, 12, 0.68), rgba(8, 14, 12, 0.74)),
-    url("../assets/hero-poster.jpg") center 40% / cover no-repeat;
+    url("../assets/hero-poster.jpg") center 24% / cover no-repeat;
 }
 
 .page-banner .wrap {
