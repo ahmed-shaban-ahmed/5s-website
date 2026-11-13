@@ -1,6 +1,6 @@
 # فايف إس — موقع الشركة
 
-موقع ثابت (HTML / CSS / JS) لشركة فايف إس لحلول تثبيت الرمال والتربة — عربي، RTL، خط Cairo.
+موقع ثابت (HTML / CSS / JS) لشركة فايف إس لحلول تثبيت الرمال والتربة — عربي RTL، خط Readex Pro، مبني وفق دليل تطوير الموقع المقدَّم من العميل (نوفمبر 2026).
 
 ## الرابط المباشر
 
@@ -10,27 +10,36 @@ https://ahmed-shaban-ahmed.github.io/5s-website/
 
 | الصفحة | الرابط |
 |--------|--------|
-| الرئيسية | [index.html](https://ahmed-shaban-ahmed.github.io/5s-website/) |
-| من نحن | [about.html](https://ahmed-shaban-ahmed.github.io/5s-website/about.html) |
-| الحلول | [solutions.html](https://ahmed-shaban-ahmed.github.io/5s-website/solutions.html) |
-| القطاعات | [sectors.html](https://ahmed-shaban-ahmed.github.io/5s-website/sectors.html) |
-| المشاريع | [projects.html](https://ahmed-shaban-ahmed.github.io/5s-website/projects.html) |
-| الشركاء | [partners.html](https://ahmed-shaban-ahmed.github.io/5s-website/partners.html) |
-| تواصل / FAQ | [contact.html](https://ahmed-shaban-ahmed.github.io/5s-website/contact.html) |
+| الرئيسية | [/](https://ahmed-shaban-ahmed.github.io/5s-website/) |
+| من نحن | [/about/](https://ahmed-shaban-ahmed.github.io/5s-website/about/) |
+| تقنية 5S (الحلول) | [/solutions/](https://ahmed-shaban-ahmed.github.io/5s-website/solutions/) |
+| 5S BERM | [/solutions/5s-berm/](https://ahmed-shaban-ahmed.github.io/5s-website/solutions/5s-berm/) |
+| 5S ROAD | [/solutions/5s-road/](https://ahmed-shaban-ahmed.github.io/5s-website/solutions/5s-road/) |
+| 5S SLOPE | [/solutions/5s-slope/](https://ahmed-shaban-ahmed.github.io/5s-website/solutions/5s-slope/) |
+| 5S DUST | [/solutions/5s-dust/](https://ahmed-shaban-ahmed.github.io/5s-website/solutions/5s-dust/) |
+| 5S WALK | [/solutions/5s-walk/](https://ahmed-shaban-ahmed.github.io/5s-website/solutions/5s-walk/) |
+| القطاعات (9 صفحات) | [/sectors/](https://ahmed-shaban-ahmed.github.io/5s-website/sectors/) |
+| المشاريع | [/projects/](https://ahmed-shaban-ahmed.github.io/5s-website/projects/) |
+| البيانات الفنية | [/technical-data/](https://ahmed-shaban-ahmed.github.io/5s-website/technical-data/) |
+| الشركاء والوكلاء | [/partners/](https://ahmed-shaban-ahmed.github.io/5s-website/partners/) |
+| حاسبة المواد | [/calculator/](https://ahmed-shaban-ahmed.github.io/5s-website/calculator/) |
+| تواصل معنا | [/contact/](https://ahmed-shaban-ahmed.github.io/5s-website/contact/) |
 
-المستودع: https://github.com/ahmed-shaban-ahmed/5s-website
+الروابط القديمة (`about.html`، `solutions.html`، …) تُحوِّل تلقائيًا إلى الروابط الجديدة.
 
-## المحتوى
+## المحتوى والبيانات المؤقتة
 
-النصوص مأخوذة من الموقع الرسمي [5s-tech.org](https://www.5s-tech.org/) والملف التعريفي للعلامة. لا تُخترع إحصاءات أو أسماء عملاء غير منشورة.
+النصوص من دليل العميل والموقع الرسمي [5s-tech.org](https://www.5s-tech.org/). كل بيانات تحتاج اعتماد العميل (الشعارات، الأرقام غير الموثقة، الشهادات، ملفات TDS/SDS، معاملات الحاسبة، بيانات الوكلاء…) معلَّمة في الصفحات بشارة صفراء «⚑ بانتظار…».
 
-## التشغيل محليًا
+## التعديل
+
+الصفحات تُولَّد من `_build/build.py` (القوالب) و`_build/data.py` (المحتوى). بعد أي تعديل:
 
 ```bash
-python3 -m http.server 8080
+python3 _build/build.py
 ```
 
-ثم افتح http://localhost:8080
+معاملات حاسبة المواد في `js/main.js` داخل الثابت `CALC_COEFFICIENTS` ويجب أن يزودها الفريق الفني.
 
 ## النشر
 
