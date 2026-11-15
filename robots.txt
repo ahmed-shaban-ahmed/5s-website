@@ -1,3 +1,0 @@
-User-agent: *
-Allow: /
-Sitemap: https://ahmed-shaban-ahmed.github.io/5s-website/sitemap.xml
