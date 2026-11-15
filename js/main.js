@@ -20,7 +20,8 @@
     openBtn.addEventListener('click', function () { setOpen(true); });
     if (closeBtn) closeBtn.addEventListener('click', function () { setOpen(false); openBtn.focus(); });
     menu.addEventListener('click', function (e) {
-      if (e.target === menu || e.target.closest('a')) setOpen(false);
+      var a = e.target.closest('a');
+      if (e.target === menu || (a && a.hasAttribute('href') && a.getAttribute('aria-disabled') !== 'true')) setOpen(false);
     });
     document.addEventListener('keydown', function (e) {
       if (e.key === 'Escape' && menu.classList.contains('open')) { setOpen(false); openBtn.focus(); }
