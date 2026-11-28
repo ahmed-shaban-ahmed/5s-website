@@ -1,4 +1,4 @@
-/* 5S — فايف إس | Design v3 — vanilla JS */
+/* 5S — فايف إس | Design v5 — vanilla JS */
 (function () {
   'use strict';
   var doc = document.documentElement;
@@ -57,7 +57,7 @@
     };
     v.addEventListener('play', sync); v.addEventListener('pause', sync);
     b.addEventListener('click', function () { if (v.paused) { v.play(); } else { v.pause(); } });
-    if (!reduce) {
+    if (!reduce && !card.closest('[data-slider]')) {
       var p = v.play();
       if (p && p.catch) p.catch(function () { sync(); });
     }
@@ -90,11 +90,84 @@
     });
   });
 
-  /* Before / after slider */
-  document.querySelectorAll('.ba').forEach(function (ba) {
-    var input = ba.querySelector('input[type="range"]');
-    var set = function (v) { ba.style.setProperty('--pos', v + '%'); };
-    if (input) { input.addEventListener('input', function () { set(input.value); }); set(input.value); }
+  /* Sliders: home hero (autoplay) and project galleries (manual).
+     RTL: the "next" arrow is on the left; ArrowLeft = next, ArrowRight = previous. */
+  document.querySelectorAll('[data-slider]').forEach(function (root) {
+    var slides = Array.prototype.slice.call(root.querySelectorAll('.slide'));
+    var dots = Array.prototype.slice.call(root.querySelectorAll('.sl-dot'));
+    var prev = root.querySelector('.sl-prev');
+    var next = root.querySelector('.sl-next');
+    var pauseBtn = root.querySelector('.sl-pause');
+    var live = root.querySelector('.slides');
+    var delay = parseInt(root.getAttribute('data-autoplay') || '0', 10);
+    var idx = 0, timer = null, userPaused = reduce, hover = false, focusIn = false;
+    var count = slides.length;
+    if (!count) return;
+
+    var videoOf = function (s) { return s.querySelector('video'); };
+    var show = function (n) {
+      idx = (n + count) % count;
+      slides.forEach(function (s, i) {
+        var on = i === idx;
+        s.classList.toggle('is-active', on);
+        s.setAttribute('aria-hidden', String(!on));
+        if ('inert' in s) s.inert = !on;
+        var v = videoOf(s);
+        if (v) {
+          if (on) { if (!reduce && !userPaused && delay) { var p = v.play(); if (p && p.catch) p.catch(function () {}); } }
+          else { v.pause(); }
+        }
+      });
+      dots.forEach(function (d, i) {
+        d.classList.toggle('is-active', i === idx);
+        if (i === idx) d.setAttribute('aria-current', 'true'); else d.removeAttribute('aria-current');
+      });
+    };
+    var stop = function () { if (timer) { clearTimeout(timer); timer = null; } };
+    var schedule = function () {
+      stop();
+      if (!delay || userPaused || hover || focusIn || document.hidden || count < 2) return;
+      timer = setTimeout(function () { show(idx + 1); schedule(); }, delay);
+    };
+    var setLive = function () { if (live) live.setAttribute('aria-live', (delay && !userPaused && !hover && !focusIn) ? 'off' : 'polite'); };
+    var syncPause = function () {
+      if (!pauseBtn) return;
+      pauseBtn.classList.toggle('is-paused', userPaused);
+      pauseBtn.setAttribute('aria-label', userPaused ? 'تشغيل الشرائح تلقائيًا' : 'إيقاف التشغيل التلقائي للشرائح');
+    };
+    var go = function (n) { show(n); schedule(); };
+
+    if (prev) prev.addEventListener('click', function () { go(idx - 1); });
+    if (next) next.addEventListener('click', function () { go(idx + 1); });
+    dots.forEach(function (d, i) { d.addEventListener('click', function () { go(i); }); });
+    if (pauseBtn) pauseBtn.addEventListener('click', function () {
+      userPaused = !userPaused; syncPause(); setLive();
+      var v = videoOf(slides[idx]);
+      if (v && userPaused) v.pause();
+      schedule();
+    });
+    root.addEventListener('mouseenter', function () { hover = true; setLive(); stop(); });
+    root.addEventListener('mouseleave', function () { hover = false; setLive(); schedule(); });
+    root.addEventListener('focusin', function (e) {
+      /* pause only for keyboard focus, not after a mouse/touch click */
+      focusIn = !!(e.target.matches && e.target.matches(':focus-visible'));
+      setLive(); if (focusIn) stop();
+    });
+    root.addEventListener('focusout', function () { focusIn = false; setLive(); schedule(); });
+    root.addEventListener('keydown', function (e) {
+      if (e.key === 'ArrowLeft') { e.preventDefault(); go(idx + 1); }
+      if (e.key === 'ArrowRight') { e.preventDefault(); go(idx - 1); }
+    });
+    var x0 = null;
+    root.addEventListener('touchstart', function (e) { x0 = e.touches[0].clientX; }, { passive: true });
+    root.addEventListener('touchend', function (e) {
+      if (x0 === null) return;
+      var dx = e.changedTouches[0].clientX - x0; x0 = null;
+      if (Math.abs(dx) > 48) go(dx < 0 ? idx + 1 : idx - 1);
+    }, { passive: true });
+    document.addEventListener('visibilitychange', schedule);
+
+    syncPause(); setLive(); show(0); schedule();
   });
 
   /* Counters */
@@ -127,39 +200,6 @@
     counters.forEach(function (el) { el.textContent = '0'; io.observe(el); });
   } else {
     document.querySelectorAll('.reveal').forEach(function (el) { el.classList.add('in'); });
-  }
-
-  /* Materials calculator — coefficients are set by the technical team.
-     Until a rate (litres of product per m²) is provided, the result stays "[—]". */
-  var RATES = { road: null, berm: null, slope: null, dust: null, walk: null };
-  var IBC_LITRES = 1000;
-  var calc = document.getElementById('calc-form');
-  if (calc) {
-    var type = calc.querySelector('#calc-type');
-    var area = calc.querySelector('#calc-area');
-    var out = calc.querySelector('#calc-out');
-    var update = function () {
-      var r = RATES[type.value];
-      var a = parseFloat(area.value);
-      if (r && a > 0) {
-        out.textContent = Math.max(1, Math.ceil((a * r) / IBC_LITRES)) + ' حاوية IBC';
-      } else {
-        out.textContent = '[—] حاوية IBC';
-      }
-    };
-    type.addEventListener('change', update); area.addEventListener('input', update); update();
-    calc.addEventListener('submit', function (e) {
-      e.preventDefault();
-      var msg = document.getElementById('lead-msg');
-      var hidden = document.getElementById('lead-details');
-      var a = area.value ? area.value + ' م²' : 'غير محددة';
-      if (hidden) hidden.value = 'حاسبة المواد — نوع التطبيق: ' + type.options[type.selectedIndex].text + ' | المساحة: ' + a;
-      var target = document.getElementById('contact');
-      if (target) target.scrollIntoView({ behavior: reduce ? 'auto' : 'smooth' });
-      var first = document.getElementById('lead-name');
-      if (first) setTimeout(function () { first.focus({ preventScroll: true }); }, reduce ? 0 : 600);
-      if (msg) msg.textContent = 'أضفنا تفاصيل الحاسبة لطلبك، أكمل بياناتك وسيرسل لك فريقنا عرضًا دقيقًا.';
-    });
   }
 
   /* Basic form validation message */
