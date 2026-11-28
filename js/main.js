@@ -202,6 +202,173 @@
     document.querySelectorAll('.reveal').forEach(function (el) { el.classList.add('in'); });
   }
 
+  /* Hash-linked tabs (media centre): #videos / #photos / #articles */
+  document.querySelectorAll('[data-hash-tabs]').forEach(function (list) {
+    var tabs = Array.prototype.slice.call(list.querySelectorAll('[role="tab"]'));
+    var ids = tabs.map(function (t) { return t.getAttribute('aria-controls'); });
+    var fromHash = function (scroll) {
+      var h = (location.hash || '').replace('#', '');
+      var i = ids.indexOf(h);
+      if (i < 0) return;
+      tabs[i].click();
+      if (scroll) list.scrollIntoView({ block: 'start' });
+    };
+    tabs.forEach(function (t, i) {
+      t.addEventListener('click', function () {
+        if (history.replaceState) history.replaceState(null, '', '#' + ids[i]);
+      });
+    });
+    window.addEventListener('hashchange', function () { fromHash(false); });
+    fromHash(true);
+  });
+
+  /* Lightbox: photos + YouTube videos (native <dialog>). RTL: ArrowLeft = next. */
+  var lb = document.getElementById('lightbox');
+  if (lb && lb.showModal) {
+    var stage = lb.querySelector('.lb-stage');
+    var cap = lb.querySelector('.lb-cap');
+    var group = [], cur = 0, opener = null;
+    var render = function () {
+      var a = group[cur];
+      stage.innerHTML = '';
+      if (a.hasAttribute('data-yt')) {
+        var f = document.createElement('iframe');
+        f.src = 'https://www.youtube-nocookie.com/embed/' + a.getAttribute('data-yt') + '?autoplay=1&rel=0';
+        f.title = a.getAttribute('data-title') || 'فيديو';
+        f.allow = 'accelerometer; autoplay; encrypted-media; picture-in-picture; fullscreen';
+        f.setAttribute('allowfullscreen', '');
+        stage.appendChild(f);
+        cap.textContent = a.getAttribute('data-title') || '';
+      } else {
+        var im = document.createElement('img');
+        im.src = a.getAttribute('href');
+        im.alt = a.getAttribute('data-caption') || '';
+        stage.appendChild(im);
+        cap.textContent = a.getAttribute('data-caption') || '';
+      }
+      if (group.length < 2) lb.setAttribute('data-single', ''); else lb.removeAttribute('data-single');
+    };
+    var step = function (d) { cur = (cur + d + group.length) % group.length; render(); };
+    document.querySelectorAll('[data-lightbox], [data-yt]').forEach(function (a) {
+      a.addEventListener('click', function (e) {
+        if (e.metaKey || e.ctrlKey || e.shiftKey) return;
+        e.preventDefault();
+        var g = a.getAttribute('data-group');
+        group = Array.prototype.slice.call(document.querySelectorAll('[data-group="' + g + '"]'));
+        cur = group.indexOf(a); opener = a;
+        render(); lb.showModal();
+      });
+    });
+    lb.querySelector('.lb-close').addEventListener('click', function () { lb.close(); });
+    lb.querySelector('.lb-prev').addEventListener('click', function () { step(-1); });
+    lb.querySelector('.lb-next').addEventListener('click', function () { step(1); });
+    lb.addEventListener('click', function (e) { if (e.target === lb) lb.close(); });
+    lb.addEventListener('keydown', function (e) {
+      if (e.key === 'ArrowLeft') { e.preventDefault(); step(1); }
+      if (e.key === 'ArrowRight') { e.preventDefault(); step(-1); }
+    });
+    lb.addEventListener('close', function () { stage.innerHTML = ''; if (opener) opener.focus(); });
+  }
+
+  /* Technical data: category filter + gated PDF download */
+  var pdfGrid = document.getElementById('pdf-grid');
+  if (pdfGrid) {
+    var chips = Array.prototype.slice.call(document.querySelectorAll('.filter-chip'));
+    var cards = Array.prototype.slice.call(pdfGrid.querySelectorAll('.pdf-card'));
+    var countEl = document.getElementById('pdf-count');
+    var applyFilter = function (cat) {
+      var n = 0;
+      cards.forEach(function (c) { var on = cat === 'all' || c.getAttribute('data-cat') === cat; c.hidden = !on; if (on) n++; });
+      chips.forEach(function (b) { var on = b.getAttribute('data-cat') === cat; b.classList.toggle('is-on', on); b.setAttribute('aria-pressed', String(on)); });
+      if (countEl) countEl.textContent = 'عدد الملفات المعروضة: ' + n;
+    };
+    chips.forEach(function (b) {
+      b.addEventListener('click', function () {
+        var cat = b.getAttribute('data-cat');
+        applyFilter(cat);
+        if (history.replaceState) history.replaceState(null, '', cat === 'all' ? location.pathname : '#cat-' + cat);
+      });
+    });
+    var hashFilter = function () {
+      var h = location.hash || '';
+      if (h.indexOf('#cat-') === 0) applyFilter(h.slice(5));
+      else if (h.indexOf('#pdf-') === 0) { applyFilter('all'); var t = document.querySelector(h); if (t) t.scrollIntoView({ block: 'center' }); }
+    };
+    window.addEventListener('hashchange', hashFilter);
+    hashFilter();
+
+    var LEAD_KEY = '5s-lead-v1';
+    var readLead = function () { try { return JSON.parse(localStorage.getItem(LEAD_KEY) || 'null'); } catch (e) { return null; } };
+    var saveLead = function (d) { try { localStorage.setItem(LEAD_KEY, JSON.stringify(d)); } catch (e) {} };
+    var known = document.getElementById('dl-known');
+    var syncKnown = function () {
+      var l = readLead();
+      if (!known) return;
+      known.hidden = !l;
+      if (l) known.querySelector('[data-known-name]').textContent = l.name || '';
+    };
+    var forget = document.getElementById('dl-forget');
+    if (forget) forget.addEventListener('click', function () { try { localStorage.removeItem(LEAD_KEY); } catch (e) {} syncKnown(); });
+    syncKnown();
+
+    var startDownload = function (url, title) {
+      var a = document.createElement('a');
+      a.href = url; a.download = url.split('/').pop(); a.rel = 'noopener';
+      document.body.appendChild(a); a.click(); a.remove();
+    };
+    var modal = document.getElementById('dl-modal');
+    var form = document.getElementById('dl-form');
+    var status = document.getElementById('dl-status');
+    var submit = document.getElementById('dl-submit');
+    var pending = null, openerBtn = null;
+    var setStatus = function (msg, err) { status.textContent = msg || ''; status.classList.toggle('is-error', !!err); };
+
+    pdfGrid.addEventListener('click', function (e) {
+      var btn = e.target.closest('.pdf-dl');
+      if (!btn) return;
+      var file = btn.getAttribute('data-file'), title = btn.getAttribute('data-title');
+      if (readLead()) { startDownload(file, title); return; }
+      pending = { file: file, title: title }; openerBtn = btn;
+      document.getElementById('dl-file').textContent = title;
+      setStatus('');
+      if (modal && modal.showModal) { modal.showModal(); document.getElementById('dl-name').focus(); }
+    });
+    if (modal) {
+      modal.querySelector('[data-close]').addEventListener('click', function () { modal.close(); });
+      modal.addEventListener('click', function (e) { if (e.target === modal) modal.close(); });
+      modal.addEventListener('close', function () { if (openerBtn) openerBtn.focus(); });
+    }
+    if (form) form.addEventListener('submit', function (e) {
+      e.preventDefault();
+      if (!form.checkValidity()) { form.reportValidity(); return; }
+      var data = {
+        name: form.elements['name'].value.trim(),
+        email: form.elements['email'].value.trim(),
+        phone: form.elements['phone'].value.trim(),
+        company: form.elements['company'].value.trim()
+      };
+      var payload = {
+        'الاسم': data.name, 'البريد الإلكتروني': data.email, 'الجوال': data.phone, 'الشركة': data.company || '—',
+        'الملف المطلوب': pending ? pending.title : '',
+        '_subject': 'طلب تحميل ملف فني — موقع فايف إس', '_template': 'table', '_captcha': 'false',
+        '_honey': form.elements['_honey'].value
+      };
+      submit.disabled = true; setStatus('جارٍ الإرسال…');
+      fetch(form.action, { method: 'POST', headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' }, body: JSON.stringify(payload) })
+        .then(function (res) { return res.json().then(function (j) { return { ok: res.ok, j: j }; }); })
+        .then(function (r) {
+          var okFlag = r.ok && String(r.j && r.j.success) !== 'false';
+          if (!okFlag) throw new Error('send failed');
+          saveLead(data); syncKnown();
+          setStatus('تم الإرسال، بدأ التحميل.');
+          var p = pending; modal.close();
+          if (p) startDownload(p.file, p.title);
+        })
+        .catch(function () { setStatus('تعذّر إرسال البيانات. تحقق من الاتصال وحاول مرة أخرى.', true); })
+        .then(function () { submit.disabled = false; });
+    });
+  }
+
   /* Basic form validation message */
   document.querySelectorAll('form[data-validate]').forEach(function (f) {
     f.addEventListener('submit', function (e) {
