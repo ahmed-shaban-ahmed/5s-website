@@ -873,3 +873,19 @@ dialog.lightbox{border:0;padding:0;background:transparent;width:min(96vw,1100px)
   .lb-cap{margin-bottom:66px}
   .m-tab{padding:12px 14px;font-size:14px}
 }
+
+/* v7: real photos in .ph frames, example content (no placeholder tags) */
+.ph-photo{display:block;min-height:0;background:var(--cream-3)}
+.ph>img.ph-img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;opacity:1;top:0;left:0}
+.sector-hero-ph.ph-photo{min-height:260px}
+.client-mark{background:#fff;border:1px solid var(--line);border-radius:12px;color:var(--gold-700);font-weight:600;font-size:12.5px;display:flex;align-items:center;justify-content:center;gap:8px;text-align:center;min-height:56px;padding:8px 10px}
+.client-mark svg{width:20px;height:20px;flex:none;fill:none;stroke:currentColor;stroke-width:1.6}
+.cert{border-style:solid}
+.proj-ph img.proj-ph-img{display:block;width:100%;aspect-ratio:16/10;object-fit:cover}
+a.proj-ph{display:block;color:inherit;text-decoration:none;transition:transform .2s,box-shadow .2s}
+a.proj-ph:hover{transform:translateY(-3px);box-shadow:0 14px 30px -18px rgba(91,74,28,.5)}
+.g-video{position:relative;display:block;width:100%;height:100%;color:#fff}
+.g-video img{width:100%;height:100%;object-fit:cover}
+.g-video .vid-play{width:68px;height:68px}
+.related{margin-top:48px;padding-top:28px;border-top:1px solid var(--line)}
+.related h2{font-size:20px;margin-bottom:16px}
